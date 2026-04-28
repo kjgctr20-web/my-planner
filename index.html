@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-title" content="데일리 플래너"/>
+<title>데일리 플래너</title>
+<style>
+:root {
+  --bg: #ffffff;
+  --bg2: #f5f5f5;
+  --bg3: #ececec;
+  --text: #1a1a1a;
+  --text2: #666666;
+  --text3: #999999;
+  --border: rgba(0,0,0,0.10);
+  --border2: rgba(0,0,0,0.18);
+  --accent: #1a1a1a;
+  --success: #2e7d32;
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1c1c1e;
+    --bg2: #2c2c2e;
+    --bg3: #3a3a3c;
+    --text: #f2f2f7;
+    --text2: #aeaeb2;
+    --text3: #636366;
+    --border: rgba(255,255,255,0.10);
+    --border2: rgba(255,255,255,0.18);
+    --accent: #f2f2f7;
+    --success: #4caf50;
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;font-size:14px;line-height:1.5}
+body{display:flex;flex-direction:column;max-width:520px;margin:0 auto;min-height:100vh}
+
+/* Header */
+.app-header{padding:16px 16px 0;padding-top:calc(16px + env(safe-area-inset-top))}
+.app-title{font-size:22px;font-weight:700;letter-spacing:-.3px}
+.app-sub{font-size:12px;color:var(--text3);margin-top:2px}
+
+/* Tab bar */
+.tab-bar{display:flex;padding:12px 16px 0;gap:6px;border-bottom:0.5px solid var(--border);margin-top:10px}
+.tab{flex:1;padding:8px 4px;text-align:center;font-size:13px;font-weight:500;color:var(--text3);border-bottom:2px solid transparent;cursor:pointer;transition:all .15s}
+.tab.active{color:var(--accent);border-bottom:2px solid var(--accent)}
+
+/* Content */
+.content{flex:1;overflow-y:auto;padding:16px;padding-bottom:calc(32px + env(safe-area-inset-bottom))}
+.page{display:none}.page.active{display:block}
+
+/* Cards */
+.card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:12px}
+.card-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:10px}
+
+/* Inputs */
+textarea.field{width:100%;border:none;background:transparent;resize:none;font-size:14px;color:var(--text);line-height:1.7;outline:none;min-height:70px;font-family:inherit}
+input.field{width:100%;border:none;background:transparent;font-size:14px;color:var(--text);outline:none;font-family:inherit}
+
+/* Date row */
+.date-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.date-row label{font-size:12px;color:var(--text3)}
+.date-row input[type=date]{font-size:13px;padding:5px 8px;border:0.5px solid var(--border2);border-radius:var(--radius-sm);background:var(--bg3);color:var(--text);flex:1;min-width:130px}
+
+/* Section label */
+.sec{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:12px 0 6px}
+.sec:first-of-type{margin-top:0}
+
+/* Table */
+table.gt{width:100%;border-collapse:collapse;font-size:13px}
+table.gt th{font-size:10px;font-weight:600;color:var(--text3);padding:5px 6px;border-bottom:0.5px solid var(--border2);text-align:left;text-transform:uppercase;letter-spacing:.04em}
+table.gt td{padding:4px 6px;border-bottom:0.5px solid var(--border);vertical-align:middle}
+table.gt td:last-child{border-bottom:none}
+table.gt tr:last-child td{border-bottom:none}
+table.gt td input{width:100%;border:none;background:transparent;font-size:13px;color:var(--text);outline:none;font-family:inherit}
+table.gt td input[type=number]{width:44px;text-align:center}
+
+/* Add button */
+.add-btn{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--text3);cursor:pointer;padding:6px 0;background:none;border:none;font-family:inherit;margin-top:2px}
+
+/* Day bar */
+.day-bar{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:12px}
+.day-btn{padding:8px 2px;border:0.5px solid var(--border);border-radius:var(--radius-sm);background:var(--bg2);cursor:pointer;font-size:11px;font-weight:500;color:var(--text3);text-align:center;transition:all .12s;font-family:inherit}
+.day-btn.active{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+
+/* Schedule */
+.sch-table{width:100%;border-collapse:collapse;font-size:13px}
+.sch-table th{font-size:10px;font-weight:600;color:var(--text3);padding:4px 5px;border-bottom:0.5px solid var(--border2);text-align:left;text-transform:uppercase;letter-spacing:.04em}
+.sch-table td{padding:3px 5px;border-bottom:0.5px solid var(--border);vertical-align:middle}
+.sch-table tr:last-child td{border-bottom:none}
+.sch-table td.tm{color:var(--text3);font-size:11px;white-space:nowrap;width:36px;font-variant-numeric:tabular-nums}
+.sch-table td input{width:100%;border:none;background:transparent;font-size:13px;color:var(--text);outline:none;font-family:inherit}
+
+/* Todo & Study */
+.item-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid var(--border)}
+.item-row:last-child{border-bottom:none}
+.chk{width:16px;height:16px;cursor:pointer;flex-shrink:0;accent-color:var(--accent)}
+.item-inp{flex:1;border:none;background:transparent;font-size:13px;color:var(--text);outline:none;font-family:inherit}
+.item-inp.done{text-decoration:line-through;color:var(--text3)}
+.study-label{font-size:12px;color:var(--text2);min-width:60px;cursor:pointer;border-right:0.5px solid var(--border);padding-right:8px;margin-right:2px}
+
+/* Save row */
+.save-row{display:flex;align-items:center;gap:12px;margin-top:4px}
+.save-btn{padding:9px 24px;border:0.5px solid var(--border2);border-radius:var(--radius-sm);background:var(--bg3);cursor:pointer;font-size:14px;font-weight:500;color:var(--text);font-family:inherit;transition:opacity .1s}
+.save-btn:active{opacity:.7}
+.saved-msg{font-size:12px;color:var(--success);opacity:0;transition:opacity .3s}
+
+/* Backup toggle */
+.backup-toggle{font-size:12px;color:var(--text3);background:none;border:0.5px solid var(--border);border-radius:20px;padding:4px 10px;cursor:pointer;font-family:inherit;margin-bottom:8px}
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div class="app-title">📋 데일리 플래너</div>
+  <div class="app-sub" id="week-subtitle">주간 날짜를 설정해주세요</div>
+</div>
+
+<div class="tab-bar">
+  <div class="tab active" onclick="switchTab('weekly')">주간 계획</div>
+  <div class="tab" onclick="switchTab('daily')">일일 플래너</div>
+</div>
+
+<div class="content">
+
+  <!-- WEEKLY -->
+  <div class="page active" id="page-weekly">
+
+    <div class="card">
+      <div class="card-title">주간 날짜</div>
+      <div class="date-row">
+        <label>시작</label>
+        <input type="date" id="week-start" onchange="updateSubtitle()"/>
+        <label>종료</label>
+        <input type="date" id="week-end" onchange="updateSubtitle()"/>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">지난주 돌아보기</div>
+      <div class="sec">잘 된 점</div>
+      <textarea class="field" id="review-good" placeholder="지난 한 주 잘 된 점을 돌아보세요..."></textarea>
+      <div class="sec">개선할 점</div>
+      <textarea class="field" id="review-improve" placeholder="다음 주엔 어떻게 더 잘할 수 있을까요..."></textarea>
+    </div>
+
+    <div class="card">
+      <div class="card-title">핵심 지표</div>
+      <table class="gt">
+        <thead><tr><th>항목</th><th style="width:50px;text-align:center">목표</th><th style="width:50px;text-align:center">실제</th></tr></thead>
+        <tbody id="ki-body"></tbody>
+      </table>
+      <button class="add-btn" onclick="addKI()">＋ 항목 추가</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">이번 주 집중해서 할 일</div>
+      <table class="gt">
+        <thead><tr><th>할 일</th><th>구체적 행동</th></tr></thead>
+        <tbody id="focus-body"></tbody>
+      </table>
+      <button class="add-btn" onclick="addFocus()">＋ 추가</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">기타 개인 목표</div>
+      <textarea class="field" id="other-goals" placeholder="이번 주 개인 목표를 자유롭게 적어주세요..."></textarea>
+    </div>
+
+    <div class="save-row">
+      <button class="save-btn" onclick="saveWeekly()">저장</button>
+      <span class="saved-msg" id="weekly-saved">✓ 저장됨</span>
+    </div>
+  </div>
+
+  <!-- DAILY -->
+  <div class="page" id="page-daily">
+    <div class="day-bar" id="day-selector"></div>
+
+    <div class="card">
+      <div class="card-title">시간별 일정</div>
+      <button class="backup-toggle" id="backup-btn" onclick="toggleBackup()">백업 플랜 보기</button>
+      <table class="sch-table">
+        <thead><tr><th style="width:36px">시간</th><th>플랜</th><th id="backup-th" style="display:none">백업 플랜</th></tr></thead>
+        <tbody id="schedule-body"></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-title">메모 / 노트</div>
+      <textarea class="field" id="daily-memo" placeholder="오늘의 메모..."></textarea>
+    </div>
+
+    <div class="card">
+      <div class="card-title">중요 일정</div>
+      <textarea class="field" id="daily-important" placeholder="오늘 꼭 챙길 일정..." style="min-height:50px"></textarea>
+    </div>
+
+    <div class="card">
+      <div class="card-title">오늘의 할 일</div>
+      <div id="todo-list"></div>
+      <button class="add-btn" onclick="addTodo()">＋ 추가</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">공부 계획 / 목표</div>
+      <div id="study-list"></div>
+      <button class="add-btn" onclick="addStudy()">＋ 과목 추가</button>
+    </div>
+
+    <div class="save-row">
+      <button class="save-btn" onclick="saveDaily()">저장</button>
+      <span class="saved-msg" id="daily-saved">✓ 저장됨</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const DAYS=[{s:'월',l:'월요일'},{s:'화',l:'화요일'},{s:'수',l:'수요일'},{s:'목',l:'목요일'},{s:'금',l:'금요일'},{s:'토',l:'토요일'},{s:'일',l:'일요일'}];
+const TIMES=['6:00','6:30','7:00','7:30','8:00','8:30','9:00','9:30','10:00','10:30','11:00','11:30','12:00','12:30','1:00','1:30','2:00','2:30','3:00','3:30','4:00','4:30','5:00','5:30','6:00','6:30','7:00','7:30','8:00','8:30','9:00'];
+
+let currentDay = 0;
+let backupVisible = false;
+let data = {
+  weekly:{review_good:'',review_improve:'',ki:[],focus:[],other:'',weekStart:'',weekEnd:''},
+  daily:{}
+};
+DAYS.forEach((_,i)=>{data.daily[i]={schedule:TIMES.map(()=>({plan:'',backup:''})),memo:'',important:'',todos:[],studies:[]}});
+
+function switchTab(tab){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['weekly','daily'][i]===tab));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+tab).classList.add('active');
+}
+
+function updateSubtitle(){
+  const s=document.getElementById('week-start').value;
+  const e=document.getElementById('week-end').value;
+  if(s&&e){
+    const fmt=d=>d.replace(/-/g,'.').slice(2);
+    document.getElementById('week-subtitle').textContent=fmt(s)+' ~ '+fmt(e);
+  }
+}
+
+function addKI(label='',goal='',actual=''){
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td><input type="text" value="${label}" placeholder="항목명" oninput="syncKI()"/></td><td style="text-align:center"><input type="number" value="${goal}" placeholder="0" oninput="syncKI()"/></td><td style="text-align:center"><input type="number" value="${actual}" placeholder="0" oninput="syncKI()"/></td>`;
+  document.getElementById('ki-body').appendChild(tr);
+}
+function syncKI(){data.weekly.ki=Array.from(document.querySelectorAll('#ki-body tr')).map(r=>{const ins=r.querySelectorAll('input');return{label:ins[0].value,goal:ins[1].value,actual:ins[2].value}});}
+
+function addFocus(task='',action=''){
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td><input type="text" value="${task}" placeholder="집중할 일" oninput="syncFocus()"/></td><td><input type="text" value="${action}" placeholder="구체적 행동" oninput="syncFocus()"/></td>`;
+  document.getElementById('focus-body').appendChild(tr);
+}
+function syncFocus(){data.weekly.focus=Array.from(document.querySelectorAll('#focus-body tr')).map(r=>{const ins=r.querySelectorAll('input');return{task:ins[0].value,action:ins[1].value}});}
+
+function buildDayBar(){
+  const c=document.getElementById('day-selector');
+  DAYS.forEach((d,i)=>{
+    const b=document.createElement('button');
+    b.className='day-btn'+(i===0?' active':'');
+    b.textContent=d.s;
+    b.onclick=()=>selectDay(i);
+    c.appendChild(b);
+  });
+}
+
+function selectDay(i){
+  currentDay=i;
+  document.querySelectorAll('.day-btn').forEach((b,j)=>b.classList.toggle('active',j===i));
+  renderSchedule();
+  document.getElementById('daily-memo').value=data.daily[i].memo||'';
+  document.getElementById('daily-important').value=data.daily[i].important||'';
+  renderTodos();
+  renderStudies();
+}
+
+function toggleBackup(){
+  backupVisible=!backupVisible;
+  const th=document.getElementById('backup-th');
+  th.style.display=backupVisible?'':'none';
+  document.querySelectorAll('.sch-table td:nth-child(3)').forEach(td=>td.style.display=backupVisible?'':'none');
+  document.getElementById('backup-btn').textContent=backupVisible?'백업 플랜 숨기기':'백업 플랜 보기';
+}
+
+function renderSchedule(){
+  const d=data.daily[currentDay];
+  const tbody=document.getElementById('schedule-body');
+  tbody.innerHTML='';
+  TIMES.forEach((t,i)=>{
+    const tr=document.createElement('tr');
+    const bkp=d.schedule[i]?d.schedule[i].backup:'';
+    const pln=d.schedule[i]?d.schedule[i].plan:'';
+    tr.innerHTML=`<td class="tm">${t}</td><td><input type="text" value="${pln}" placeholder="" oninput="data.daily[${currentDay}].schedule[${i}].plan=this.value"/></td><td style="display:${backupVisible?'':'none'}"><input type="text" value="${bkp}" placeholder="" oninput="data.daily[${currentDay}].schedule[${i}].backup=this.value"/></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderTodos(){
+  const d=data.daily[currentDay];
+  const c=document.getElementById('todo-list');
+  c.innerHTML='';
+  (d.todos||[]).forEach((todo,i)=>{
+    const row=document.createElement('div');
+    row.className='item-row';
+    row.innerHTML=`<input type="checkbox" class="chk" ${todo.done?'checked':''} onchange="toggleTodo(${i})"/><input class="item-inp${todo.done?' done':''}" type="text" value="${todo.text||''}" placeholder="할 일 입력..." oninput="data.daily[${currentDay}].todos[${i}].text=this.value"/>`;
+    c.appendChild(row);
+  });
+}
+function addTodo(){data.daily[currentDay].todos.push({text:'',done:false});renderTodos();const ins=document.querySelectorAll('#todo-list .item-inp');if(ins.length)ins[ins.length-1].focus();}
+function toggleTodo(i){data.daily[currentDay].todos[i].done=!data.daily[currentDay].todos[i].done;renderTodos();}
+
+function renderStudies(){
+  const d=data.daily[currentDay];
+  const c=document.getElementById('study-list');
+  c.innerHTML='';
+  (d.studies||[]).forEach((s,i)=>{
+    const row=document.createElement('div');
+    row.className='item-row';
+    row.innerHTML=`<span class="study-label" onclick="renameStudy(${i})">${s.subject||'과목'}</span><input class="item-inp" type="text" value="${s.goal||''}" placeholder="오늘의 목표..." oninput="data.daily[${currentDay}].studies[${i}].goal=this.value"/>`;
+    c.appendChild(row);
+  });
+}
+function addStudy(){
+  const subj=prompt('과목/분야 이름\n(예: 수학, 영어, SwiftUI)');
+  if(subj===null)return;
+  data.daily[currentDay].studies.push({subject:subj||'과목',goal:''});
+  renderStudies();
+  const ins=document.querySelectorAll('#study-list .item-inp');
+  if(ins.length)ins[ins.length-1].focus();
+}
+function renameStudy(i){
+  const cur=data.daily[currentDay].studies[i].subject;
+  const n=prompt('과목/분야 이름 변경',cur);
+  if(n!==null){data.daily[currentDay].studies[i].subject=n||cur;renderStudies();}
+}
+
+document.getElementById('daily-memo').addEventListener('input',e=>{data.daily[currentDay].memo=e.target.value});
+document.getElementById('daily-important').addEventListener('input',e=>{data.daily[currentDay].important=e.target.value});
+document.getElementById('review-good').addEventListener('input',e=>{data.weekly.review_good=e.target.value});
+document.getElementById('review-improve').addEventListener('input',e=>{data.weekly.review_improve=e.target.value});
+document.getElementById('other-goals').addEventListener('input',e=>{data.weekly.other=e.target.value});
+document.getElementById('week-start').addEventListener('change',e=>{data.weekly.weekStart=e.target.value});
+document.getElementById('week-end').addEventListener('change',e=>{data.weekly.weekEnd=e.target.value});
+
+function flash(id){const el=document.getElementById(id);el.style.opacity=1;setTimeout(()=>el.style.opacity=0,2000);}
+
+function saveWeekly(){
+  syncKI();syncFocus();
+  data.weekly.review_good=document.getElementById('review-good').value;
+  data.weekly.review_improve=document.getElementById('review-improve').value;
+  data.weekly.other=document.getElementById('other-goals').value;
+  data.weekly.weekStart=document.getElementById('week-start').value;
+  data.weekly.weekEnd=document.getElementById('week-end').value;
+  try{localStorage.setItem('planner_weekly',JSON.stringify(data.weekly));}catch(e){}
+  flash('weekly-saved');
+}
+
+function saveDaily(){
+  data.daily[currentDay].memo=document.getElementById('daily-memo').value;
+  data.daily[currentDay].important=document.getElementById('daily-important').value;
+  try{localStorage.setItem('planner_daily',JSON.stringify(data.daily));}catch(e){}
+  flash('daily-saved');
+}
+
+function loadSaved(){
+  try{
+    const w=localStorage.getItem('planner_weekly');
+    if(w){
+      const wd=JSON.parse(w);data.weekly=wd;
+      document.getElementById('review-good').value=wd.review_good||'';
+      document.getElementById('review-improve').value=wd.review_improve||'';
+      document.getElementById('other-goals').value=wd.other||'';
+      if(wd.weekStart){document.getElementById('week-start').value=wd.weekStart;document.getElementById('week-end').value=wd.weekEnd||'';updateSubtitle();}
+      (wd.ki||[]).forEach(k=>addKI(k.label,k.goal,k.actual));
+      (wd.focus||[]).forEach(f=>addFocus(f.task,f.action));
+    }
+    const d=localStorage.getItem('planner_daily');
+    if(d){
+      const dd=JSON.parse(d);
+      DAYS.forEach((_,i)=>{if(dd[i]){data.daily[i]=dd[i];if(!data.daily[i].studies)data.daily[i].studies=[];}});
+    }
+  }catch(e){}
+}
+
+loadSaved();
+if(!data.weekly.ki.length){addKI();addKI();addKI();}
+if(!data.weekly.focus.length){addFocus();addFocus();addFocus();}
+buildDayBar();
+renderSchedule();
+renderTodos();
+renderStudies();
+</script>
+</body>
+</html>
