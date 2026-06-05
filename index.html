@@ -154,6 +154,10 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
 .wdc-date{font-size:13px;font-weight:700;color:var(--blue-deep);margin-top:2px}
 .wdc-today{background:var(--blue-mid);border-color:var(--blue-mid)}
 .wdc-today .wdc-day,.wdc-today .wdc-date{color:#fff}
+.wdc-sat:not(.wdc-today){background:#EAF2FF;border-color:#7AAEE8}
+.wdc-sat:not(.wdc-today) .wdc-day,.wdc-sat:not(.wdc-today) .wdc-date{color:#2657A8}
+.wdc-red:not(.wdc-today){background:#FFF0EE;border-color:#E8A0A0}
+.wdc-red:not(.wdc-today) .wdc-day,.wdc-red:not(.wdc-today) .wdc-date{color:#C0392B}
 
 /* ── SECTION DIVIDER ── */
 .sec-divider{
@@ -221,6 +225,28 @@ table.gt td input[type=number]{width:44px;text-align:center;font-weight:700;colo
   border-color:var(--blue-soft);border-width:2.5px;
 }
 .day-btn.is-today:not(.active) .db-day{color:var(--blue-mid)}
+/* 토요일 */
+.day-btn.is-sat:not(.active){background:#EAF2FF;border-color:#7AAEE8}
+.day-btn.is-sat:not(.active) .db-day,
+.day-btn.is-sat:not(.active) .db-date{color:#2657A8;font-weight:700}
+/* 일요일·공휴일 */
+.day-btn.is-red:not(.active){background:#FFF0EE;border-color:#E8A0A0}
+.day-btn.is-red:not(.active) .db-day,
+.day-btn.is-red:not(.active) .db-date{color:#C0392B;font-weight:700}
+/* 접기 버튼 */
+.work-collapse-btn{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  width:100%;padding:7px 12px;
+  background:var(--blue-ghost);
+  border:none;border-top:2px dashed var(--blue-pale);border-bottom:2px dashed var(--blue-pale);
+  font-size:11px;font-weight:700;color:var(--blue-soft);
+  cursor:pointer;font-family:inherit;letter-spacing:.04em;
+  transition:background .15s;
+}
+.work-collapse-btn:active{background:var(--blue-pale)}
+.work-collapse-btn .arrow{font-size:10px;display:inline-block;transition:transform .25s}
+.work-collapse-btn.collapsed .arrow{transform:rotate(180deg)}
+.work-hours-block{overflow:hidden;transition:max-height .35s ease}
 
 /* ── DAILY HEADER ── */
 .daily-day-header{
@@ -411,9 +437,21 @@ table.gt td input[type=number]{width:44px;text-align:center;font-weight:700;colo
       </div>
       <button class="backup-toggle" id="backup-btn" onclick="toggleBackup()">백업 플랜 보기</button>
       <div class="sch-wrap">
+        <!-- 구역 1: 06:00~07:30 항상 표시 -->
         <table class="sch-table">
           <thead><tr><th style="width:38px">시간</th><th>플랜</th><th id="backup-th" style="display:none">백업 플랜</th></tr></thead>
-          <tbody id="schedule-body"></tbody>
+          <tbody id="zone-before"></tbody>
+        </table>
+        <!-- 구역 2: 08:00~17:00 평일만 접기 -->
+        <button class="work-collapse-btn collapsed" id="work-collapse-btn" onclick="toggleWorkHours()" style="display:none">
+          <span class="arrow">▲</span> 08:00 ~ 17:00 업무시간 펼치기
+        </button>
+        <div class="work-hours-block" id="work-hours-block" style="max-height:0;overflow:hidden">
+          <table class="sch-table"><tbody id="zone-work"></tbody></table>
+        </div>
+        <!-- 구역 3: 17:00~22:00 항상 표시 -->
+        <table class="sch-table" id="zone-after-table">
+          <tbody id="zone-after"></tbody>
         </table>
       </div>
     </div>
@@ -470,7 +508,28 @@ table.gt td input[type=number]{width:44px;text-align:center;font-weight:700;colo
 
 <script>
 const DAYS_KO=['월','화','수','목','금','토','일'];
+// 08:00~17:00 근무시간 인덱스: TIMES 배열에서 '8:00'(idx4)~'17:00'(idx13)
 const TIMES=['6:00','6:30','7:00','7:30','8:00','9:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','19:30','20:00','20:30','21:00','21:30','22:00'];
+const WORK_START=4; // TIMES index for 8:00
+const WORK_END=13;  // TIMES index for 17:00 (inclusive)
+
+// 2025~2026 대한민국 공휴일 (YYYY-MM-DD)
+const HOLIDAYS=new Set([
+  '2025-01-01','2025-01-28','2025-01-29','2025-01-30',
+  '2025-03-01','2025-05-05','2025-05-06','2025-06-06',
+  '2025-08-15','2025-10-03','2025-10-05','2025-10-06','2025-10-07','2025-10-08','2025-10-09',
+  '2025-12-25',
+  '2026-01-01','2026-02-17','2026-02-18','2026-02-19',
+  '2026-03-01','2026-03-02','2026-05-05','2026-05-25','2026-06-06',
+  '2026-08-15','2026-09-24','2026-09-25','2026-09-26',
+  '2026-10-03','2026-10-09','2026-12-25'
+]);
+
+function isHoliday(date){return HOLIDAYS.has(dateKey(date));}
+function isSat(date){return date.getDay()===6;}
+function isSun(date){return date.getDay()===0;}
+function isRed(date){return isSun(date)||isHoliday(date);}
+function isWeekday(date){return !isSat(date)&&!isSun(date)&&!isHoliday(date);}
 let currentDay=0,backupVisible=false;
 let weekMonday=getThisWeekMonday();
 let data={weekly:{},daily:{}};
@@ -494,7 +553,7 @@ function renderWeekHeader(){
   const todayStr=dateKey(new Date());
   dates.forEach((d,i)=>{
     const cell=document.createElement('div');
-    cell.className='week-date-cell'+(dateKey(d)===todayStr?' wdc-today':'');
+    cell.className='week-date-cell'+(dateKey(d)===todayStr?' wdc-today':'')+(isSat(d)?' wdc-sat':'')+(isRed(d)?' wdc-red':'');
     cell.innerHTML=`<div class="wdc-day">${DAYS_KO[i]}</div><div class="wdc-date">${d.getDate()}</div>`;
     row.appendChild(cell);
   });
@@ -546,6 +605,8 @@ function updateDayBar(){
     let cls='day-btn';
     if(i===currentDay)cls+=' active';
     if(dateKey(d)===todayStr)cls+=' is-today';
+    if(isSat(d))cls+=' is-sat';
+    if(isRed(d))cls+=' is-red';
     b.className=cls;
     b.innerHTML=`<span class="db-day">${DAYS_KO[i]}</span><span class="db-date">${d.getDate()}</span>`;
     b.onclick=()=>selectDay(i);
@@ -578,22 +639,87 @@ function selectDay(i){
 function toggleBackup(){
   backupVisible=!backupVisible;
   document.getElementById('backup-th').style.display=backupVisible?'':'none';
-  document.querySelectorAll('.sch-table td:nth-child(3)').forEach(td=>td.style.display=backupVisible?'':'none');
+  document.querySelectorAll('#zone-before td:nth-child(3),#zone-work td:nth-child(3),#zone-after td:nth-child(3)').forEach(td=>td.style.display=backupVisible?'':'none');
   document.getElementById('backup-btn').textContent=backupVisible?'백업 플랜 숨기기':'백업 플랜 보기';
 }
 
-function renderSchedule(){
+let workCollapsed=true;
+
+function toggleWorkHours(){
+  workCollapsed=!workCollapsed;
+  const btn=document.getElementById('work-collapse-btn');
+  const block=document.getElementById('work-hours-block');
+  if(workCollapsed){
+    block.style.maxHeight='0';
+    btn.classList.add('collapsed');
+    btn.innerHTML='<span class="arrow">▲</span> 08:00 ~ 17:00 업무시간 펼치기';
+  } else {
+    block.style.maxHeight=block.scrollHeight+'px';
+    btn.classList.remove('collapsed');
+    btn.innerHTML='<span class="arrow">▼</span> 08:00 ~ 17:00 업무시간 접기';
+  }
+}
+
+function makeRow(t, i, bkpDisplay){
   const d=currentDayData();
-  const tbody=document.getElementById('schedule-body');tbody.innerHTML='';
+  if(!d.schedule[i])d.schedule[i]={plan:'',backup:''};
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td class="tm">${t}</td>
+    <td><input type="text" value="${d.schedule[i].plan}" oninput="currentDayData().schedule[${i}].plan=this.value"/></td>
+    <td style="display:${bkpDisplay}"><input type="text" value="${d.schedule[i].backup}" oninput="currentDayData().schedule[${i}].backup=this.value"/></td>`;
+  return tr;
+}
+
+function renderSchedule(){
+  const curDate=getWeekDates(weekMonday)[currentDay];
+  const weekday=isWeekday(curDate);
+  const bkp=backupVisible?'':'none';
+
+  const zoneBefore=document.getElementById('zone-before');
+  const zoneWork=document.getElementById('zone-work');
+  const zoneAfter=document.getElementById('zone-after');
+  const colBtn=document.getElementById('work-collapse-btn');
+  const colBlock=document.getElementById('work-hours-block');
+
+  zoneBefore.innerHTML='';
+  zoneWork.innerHTML='';
+  zoneAfter.innerHTML='';
+
   TIMES.forEach((t,i)=>{
-    if(!d.schedule[i])d.schedule[i]={plan:'',backup:''};
-    const tr=document.createElement('tr');
-    if(i%2===0&&i>0)tr.className='hour-mark';
-    tr.innerHTML=`<td class="tm">${t}</td>
-      <td><input type="text" value="${d.schedule[i].plan}" oninput="currentDayData().schedule[${i}].plan=this.value"/></td>
-      <td style="display:${backupVisible?'':'none'}"><input type="text" value="${d.schedule[i].backup}" oninput="currentDayData().schedule[${i}].backup=this.value"/></td>`;
-    tbody.appendChild(tr);
+    const tr=makeRow(t,i,bkp);
+    if(i < WORK_START){
+      // 06:00~07:30 — 항상 위쪽 구역
+      zoneBefore.appendChild(tr);
+    } else if(i >= WORK_START && i <= WORK_END){
+      if(weekday){
+        // 평일: 접히는 구역에 배치
+        zoneWork.appendChild(tr);
+      } else {
+        // 주말/공휴일: 아래 구역에 연속 표시
+        zoneAfter.appendChild(tr);
+      }
+    } else {
+      // 17:00~22:00 — 항상 아래 구역
+      zoneAfter.appendChild(tr);
+    }
   });
+
+  // 접기 버튼 — 평일만
+  if(weekday){
+    colBtn.style.display='flex';
+    if(workCollapsed){
+      colBlock.style.maxHeight='0';
+      colBtn.classList.add('collapsed');
+      colBtn.innerHTML='<span class="arrow">▲</span> 08:00 ~ 17:00 업무시간 펼치기';
+    } else {
+      colBlock.style.maxHeight=colBlock.scrollHeight+'px';
+      colBtn.classList.remove('collapsed');
+      colBtn.innerHTML='<span class="arrow">▼</span> 08:00 ~ 17:00 업무시간 접기';
+    }
+  } else {
+    colBtn.style.display='none';
+    colBlock.style.maxHeight='none';
+  }
 }
 
 function renderTodos(){
