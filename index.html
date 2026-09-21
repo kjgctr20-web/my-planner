@@ -2,329 +2,30 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="플래너"/>
 <title>데일리 플래너</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
-:root{
-  --blue-deep:  #1A3A6B;
-  --blue-mid:   #2657A8;
-  --blue-soft:  #4A80D4;
-  --blue-light: #7AAEE8;
-  --blue-pale:  #C8DEFF;
-  --blue-ghost: #EAF2FF;
-  --blue-mist:  #F3F8FF;
-  --white:      #FFFFFF;
-  --gray-line:  #C5D8F5;
-  --gray-text:  #5A7299;
-  --gray-light: #8AAED4;
-  --dark:       #0F2042;
-  --accent:     #1A3A6B;
-  --success:    #2E7D4F;
-  --red-soft:   #D45A4A;
-  --gold:       #E8A830;
-  --r:          14px;
-  --r-sm:       9px;
-  --shadow-sm:  0 1px 4px rgba(26,58,107,.10);
-  --shadow:     0 2px 12px rgba(26,58,107,.13);
-  --shadow-md:  0 4px 20px rgba(26,58,107,.18);
-}
-@media(prefers-color-scheme:dark){
-  :root{
-    --blue-deep:  #5A90E0;
-    --blue-mid:   #4A78C8;
-    --blue-soft:  #3A64B0;
-    --blue-light: #4A78C8;
-    --blue-pale:  #1A2E50;
-    --blue-ghost: #0F1E38;
-    --blue-mist:  #0A1628;
-    --white:      #121C30;
-    --gray-line:  #1E3050;
-    --gray-text:  #7AAEE8;
-    --gray-light: #4A6890;
-    --dark:       #D0E4FF;
-    --accent:     #5A90E0;
-    --success:    #4CAF70;
-    --red-soft:   #E07060;
-    --gold:       #F0B840;
-    --shadow-sm:  0 1px 4px rgba(0,0,0,.3);
-    --shadow:     0 2px 12px rgba(0,0,0,.4);
-    --shadow-md:  0 4px 20px rgba(0,0,0,.5);
-  }
-}
+:root{color-scheme:light;--bg:#f5f4ef;--surface:#fffefa;--soft:#eeeee7;--line:#dddfd5;--ink:#303d37;--muted:#677269;--green:#38624f;--green-soft:#e6eee5;--blue:#46677e;--blue-bg:#eaf0f5;--red:#a65450;--red-bg:#faeeea;--shadow:0 5px 22px #303d3706;--r:20px}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;background:var(--blue-mist);color:var(--dark);
-  font-family:'Noto Sans KR',sans-serif;font-size:14px;line-height:1.6}
-body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height:100vh}
-
-/* ── HEADER ── */
-.app-header{
-  background:linear-gradient(135deg, var(--blue-deep) 0%, var(--blue-mid) 100%);
-  padding:calc(env(safe-area-inset-top)+18px) 20px 18px;
-  box-shadow:0 3px 16px rgba(26,58,107,.35);
-  position:relative;overflow:hidden;
-}
-.app-header::before{
-  content:'';position:absolute;top:-30px;right:-30px;
-  width:120px;height:120px;border-radius:50%;
-  background:rgba(255,255,255,.07);
-}
-.app-header::after{
-  content:'';position:absolute;bottom:-20px;left:20px;
-  width:80px;height:80px;border-radius:50%;
-  background:rgba(255,255,255,.05);
-}
-.header-top{display:flex;align-items:flex-end;justify-content:space-between;position:relative;z-index:1}
-.app-title{font-size:22px;font-weight:700;color:#fff;letter-spacing:-.4px}
-.app-title-sub{font-size:11px;color:var(--blue-pale);font-weight:500;margin-bottom:3px;letter-spacing:.04em}
-.week-badge{
-  background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);
-  border-radius:20px;padding:4px 12px;
-  font-size:11px;font-weight:600;color:#fff;
-  white-space:nowrap;backdrop-filter:blur(4px);
-}
-
-/* ── TAB BAR ── */
-.tab-bar{
-  display:flex;background:var(--white);
-  border-bottom:2.5px solid var(--gray-line);
-  box-shadow:var(--shadow-sm);
-}
-.tab{
-  flex:1;padding:13px 4px;text-align:center;
-  font-size:13px;font-weight:600;color:var(--gray-light);
-  border-bottom:3px solid transparent;margin-bottom:-2.5px;
-  cursor:pointer;transition:all .2s;letter-spacing:.01em;
-}
-.tab.active{color:var(--blue-mid);border-bottom:3px solid var(--blue-mid)}
-
-/* ── CONTENT ── */
-.content{flex:1;overflow-y:auto;padding:16px;padding-bottom:calc(36px + env(safe-area-inset-bottom));background:var(--blue-mist)}
-.page{display:none}.page.active{display:block}
-
-/* ── CARD ── */
-.card{
-  background:var(--white);
-  border:1.5px solid var(--gray-line);
-  border-radius:var(--r);
-  margin-bottom:12px;
-  box-shadow:var(--shadow);
-  overflow:hidden;
-}
-.card-header{
-  display:flex;align-items:center;gap:10px;
-  padding:12px 16px;
-  background:var(--blue-ghost);
-  border-bottom:2px solid var(--gray-line);
-}
-.card-icon{
-  width:30px;height:30px;border-radius:8px;
-  background:var(--white);
-  display:flex;align-items:center;justify-content:center;
-  font-size:15px;box-shadow:var(--shadow-sm);
-  flex-shrink:0;border:1px solid var(--gray-line);
-}
-.card-title{font-size:12px;font-weight:700;color:var(--blue-deep);text-transform:uppercase;letter-spacing:.08em}
-.card-body{padding:14px 16px}
-
-/* ── WEEK NAV ── */
-.week-nav{display:flex;align-items:center;gap:10px;margin-bottom:12px}
-.week-nav-btn{
-  width:34px;height:34px;border-radius:50%;
-  border:2px solid var(--blue-pale);
-  background:var(--blue-ghost);
-  display:flex;align-items:center;justify-content:center;
-  font-size:17px;cursor:pointer;color:var(--blue-mid);
-  transition:all .15s;flex-shrink:0;font-weight:700;
-}
-.week-nav-btn:active{background:var(--blue-pale);transform:scale(.92)}
-.week-label-big{flex:1;text-align:center;font-size:14px;font-weight:700;color:var(--blue-deep)}
-
-.week-dates-row{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
-.week-date-cell{
-  text-align:center;padding:6px 2px;
-  border-radius:var(--r-sm);
-  background:var(--blue-mist);
-  border:1.5px solid var(--blue-pale);
-}
-.wdc-day{font-size:9px;color:var(--gray-light);font-weight:700;text-transform:uppercase}
-.wdc-date{font-size:13px;font-weight:700;color:var(--blue-deep);margin-top:2px}
-.wdc-today{background:var(--blue-mid);border-color:var(--blue-mid)}
-.wdc-today .wdc-day,.wdc-today .wdc-date{color:#fff}
-.wdc-sat:not(.wdc-today){background:#EAF2FF;border-color:#7AAEE8}
-.wdc-sat:not(.wdc-today) .wdc-day,.wdc-sat:not(.wdc-today) .wdc-date{color:#2657A8}
-.wdc-red:not(.wdc-today){background:#FFF0EE;border-color:#E8A0A0}
-.wdc-red:not(.wdc-today) .wdc-day,.wdc-red:not(.wdc-today) .wdc-date{color:#C0392B}
-
-/* ── SECTION DIVIDER ── */
-.sec-divider{
-  display:flex;align-items:center;gap:8px;
-  padding:0 0 8px;margin-top:4px;
-}
-.sec-divider:first-of-type{margin-top:0}
-.sdiv-bar{flex:1;height:2px;background:var(--blue-pale);border-radius:2px}
-.sdiv-label{
-  font-size:10px;font-weight:700;color:var(--blue-soft);
-  text-transform:uppercase;letter-spacing:.1em;white-space:nowrap;
-}
-textarea.field{
-  width:100%;border:none;background:transparent;resize:none;
-  font-size:13px;color:var(--dark);line-height:1.8;outline:none;
-  min-height:68px;font-family:inherit;
-}
-
-/* ── TABLE (KI, Focus) ── */
-table.gt{width:100%;border-collapse:collapse;font-size:13px}
-table.gt th{
-  font-size:10px;font-weight:700;color:var(--blue-mid);
-  padding:7px 8px;border-bottom:2px solid var(--blue-pale);
-  text-align:left;text-transform:uppercase;letter-spacing:.06em;
-  background:var(--blue-ghost);
-}
-table.gt td{
-  padding:7px 8px;border-bottom:1.5px solid var(--blue-ghost);
-  vertical-align:middle;
-}
-table.gt tr:last-child td{border-bottom:none}
-table.gt tr:hover td{background:var(--blue-mist)}
-table.gt td input{width:100%;border:none;background:transparent;font-size:13px;color:var(--dark);outline:none;font-family:inherit}
-table.gt td input[type=number]{width:44px;text-align:center;font-weight:700;color:var(--blue-mid)}
-
-/* ── ADD BUTTON ── */
-.add-btn{
-  display:inline-flex;align-items:center;gap:5px;
-  font-size:12px;font-weight:700;color:var(--blue-mid);
-  cursor:pointer;padding:8px 0 2px;background:none;border:none;
-  font-family:inherit;letter-spacing:.02em;transition:opacity .15s;
-}
-.add-btn:active{opacity:.6}
-
-/* ── DAY BAR ── */
-.day-bar{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:14px}
-.day-btn{
-  padding:8px 2px 7px;
-  border:2px solid var(--blue-pale);
-  border-radius:var(--r-sm);
-  background:var(--white);
-  cursor:pointer;color:var(--gray-text);
-  text-align:center;transition:all .15s;
-  font-family:inherit;line-height:1.25;
-  box-shadow:var(--shadow-sm);
-}
-.day-btn .db-day{font-size:11px;font-weight:700;display:block}
-.day-btn .db-date{font-size:11px;display:block;margin-top:2px;font-weight:500}
-.day-btn.active{
-  background:var(--blue-mid);color:#fff;
-  border-color:var(--blue-mid);
-  box-shadow:0 3px 10px rgba(38,87,168,.35);
-}
-.day-btn.is-today:not(.active){
-  border-color:var(--blue-soft);border-width:2.5px;
-}
-.day-btn.is-today:not(.active) .db-day{color:var(--blue-mid)}
-/* 토요일 */
-.day-btn.is-sat:not(.active){background:#EAF2FF;border-color:#7AAEE8}
-.day-btn.is-sat:not(.active) .db-day,
-.day-btn.is-sat:not(.active) .db-date{color:#2657A8;font-weight:700}
-/* 일요일·공휴일 */
-.day-btn.is-red:not(.active){background:#FFF0EE;border-color:#E8A0A0}
-.day-btn.is-red:not(.active) .db-day,
-.day-btn.is-red:not(.active) .db-date{color:#C0392B;font-weight:700}
-/* 접기 버튼 */
-.work-collapse-btn{
-  display:flex;align-items:center;justify-content:center;gap:6px;
-  width:100%;padding:7px 12px;
-  background:var(--blue-ghost);
-  border:none;border-top:2px dashed var(--blue-pale);border-bottom:2px dashed var(--blue-pale);
-  font-size:11px;font-weight:700;color:var(--blue-soft);
-  cursor:pointer;font-family:inherit;letter-spacing:.04em;
-  transition:background .15s;
-}
-.work-collapse-btn:active{background:var(--blue-pale)}
-.work-collapse-btn .arrow{font-size:10px;display:inline-block;transition:transform .25s}
-.work-collapse-btn.collapsed .arrow{transform:rotate(180deg)}
-.work-hours-block{overflow:hidden;transition:max-height .35s ease}
-
-/* ── DAILY HEADER ── */
-.daily-day-header{
-  margin-bottom:14px;
-  padding:13px 16px;
-  background:linear-gradient(120deg,var(--blue-deep),var(--blue-soft));
-  border-radius:var(--r);
-  display:flex;align-items:center;gap:12px;
-  box-shadow:var(--shadow-md);
-}
-.ddh-icon{font-size:22px}
-.ddh-day{font-size:17px;font-weight:700;color:#fff}
-.ddh-date{font-size:11px;color:var(--blue-pale);margin-top:1px;font-weight:500}
-
-/* ── SCHEDULE TABLE ── */
-.sch-wrap{padding:0 16px 14px}
-.sch-table{width:100%;border-collapse:collapse;font-size:13px}
-.sch-table th{
-  font-size:10px;font-weight:700;color:var(--blue-mid);
-  padding:7px 8px;border-bottom:2px solid var(--blue-pale);
-  text-align:left;text-transform:uppercase;letter-spacing:.06em;
-  background:var(--blue-ghost);
-}
-.sch-table td{
-  padding:4px 8px;border-bottom:1px solid var(--blue-ghost);
-  vertical-align:middle;
-}
-.sch-table tr:last-child td{border-bottom:none}
-.sch-table tr.hour-mark td{border-top:2px solid var(--blue-pale)}
-.sch-table tr:nth-child(even) td{background:var(--blue-mist)}
-.sch-table td.tm{
-  color:var(--blue-soft);font-size:11px;font-weight:700;
-  white-space:nowrap;width:38px;font-variant-numeric:tabular-nums;
-}
-.sch-table td input{
-  width:100%;border:none;background:transparent;
-  font-size:13px;color:var(--dark);outline:none;font-family:inherit;
-}
-
-/* ── BACKUP TOGGLE ── */
-.backup-toggle{
-  font-size:11px;font-weight:700;color:var(--blue-soft);
-  background:var(--blue-ghost);
-  border:1.5px solid var(--blue-pale);border-radius:20px;
-  padding:4px 12px;cursor:pointer;font-family:inherit;
-  margin:0 16px 10px;transition:all .15s;display:block;
-  width:calc(100% - 32px);text-align:center;
-}
-.backup-toggle:active{background:var(--blue-pale)}
-
-/* ── ITEM ROWS (todo, study) ── */
-.item-row{
-  display:flex;align-items:center;gap:10px;
-  padding:7px 0;border-bottom:1.5px solid var(--blue-ghost);
-}
-.item-row:last-child{border-bottom:none}
-.chk{width:17px;height:17px;cursor:pointer;flex-shrink:0;accent-color:var(--blue-mid)}
-.item-inp{flex:1;border:none;background:transparent;font-size:13px;color:var(--dark);outline:none;font-family:inherit}
-.item-inp.done{text-decoration:line-through;color:var(--gray-light)}
-.study-tag{
-  font-size:10px;font-weight:700;color:#fff;
-  background:var(--blue-mid);
-  border-radius:6px;padding:2px 8px;
-  cursor:pointer;flex-shrink:0;min-width:54px;text-align:center;
-  letter-spacing:.02em;
-}
-
-/* ── SAVE ROW ── */
-.save-row{display:flex;align-items:center;gap:14px;margin-top:6px}
-.save-btn{
-  padding:11px 32px;border:none;border-radius:var(--r-sm);
-  background:linear-gradient(120deg,var(--blue-deep),var(--blue-mid));
-  color:#fff;cursor:pointer;font-size:14px;font-weight:700;
-  font-family:inherit;letter-spacing:.03em;
-  box-shadow:0 3px 10px rgba(26,58,107,.35);transition:all .15s;
-}
-.save-btn:active{transform:scale(.96);opacity:.9}
-.saved-msg{font-size:12px;font-weight:700;color:var(--success);opacity:0;transition:opacity .3s;letter-spacing:.02em}
+html{background:var(--bg);color:var(--ink);font-family:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased}
+body{max-width:560px;margin:0 auto;min-height:100vh;padding:0 12px 28px}
+button,input,textarea{font:inherit}button{cursor:pointer}button,input,textarea{color:inherit}button{touch-action:manipulation}input{min-width:0}button:focus-visible,input:focus-visible,textarea:focus-visible,.tab:focus-visible{outline:2px solid var(--green);outline-offset:3px}::placeholder{color:var(--muted);opacity:1}::selection{background:var(--green-soft)}
+.app-header{padding:calc(env(safe-area-inset-top) + 32px) 12px 25px}.header-top{display:flex;align-items:center;justify-content:space-between;gap:12px}.app-title-sub{color:var(--green);font-size:10px;font-weight:700;letter-spacing:.19em;margin-bottom:6px}.app-title{font-size:25px;font-weight:700;letter-spacing:-1px}.week-badge{font-size:11px;white-space:nowrap;color:var(--green);background:var(--green-soft);border:1px solid var(--line);border-radius:999px;padding:6px 10px}
+.tab-bar{display:flex;background:var(--soft);padding:5px;border-radius:15px;margin:0 8px 22px;gap:5px}.tab{flex:1;text-align:center;padding:11px 4px;border:0;border-radius:11px;color:var(--muted);background:transparent;font-weight:600;font-size:14px;cursor:pointer;transition:background .2s,color .2s}.tab.active{background:var(--surface);color:var(--green);box-shadow:0 2px 6px #303d370b}
+.content{padding:0 8px calc(24px + env(safe-area-inset-bottom))}.page{display:none}.page.active{display:block}.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);margin-bottom:18px;box-shadow:var(--shadow);overflow:hidden}.card-header{display:flex;align-items:center;gap:10px;padding:18px 20px 12px}.card-icon{width:32px;height:32px;background:var(--soft);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}.card-title{font-size:14px;font-weight:700;letter-spacing:-.3px}.card-body{padding:8px 20px 20px}
+.week-nav{display:flex;align-items:center;gap:8px;margin:0 0 16px}.week-nav-btn{width:40px;height:40px;flex-shrink:0;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--green);font-size:23px;line-height:1}.week-label-big{flex:1;text-align:center;font-weight:600;font-size:15px;letter-spacing:-.4px}.week-dates-row,.day-bar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}.week-date-cell{text-align:center;padding:9px 0;border:1px solid transparent;border-radius:12px;background:var(--soft)}.wdc-day{font-size:11px;font-weight:500;color:var(--muted)}.wdc-date{font-size:16px;font-weight:600;margin-top:3px;font-variant-numeric:tabular-nums}.wdc-today{background:var(--green);color:#fff}.wdc-today .wdc-day{color:#fff}.wdc-sat:not(.wdc-today){background:var(--blue-bg);color:var(--blue)}.wdc-sat:not(.wdc-today) .wdc-day{color:var(--blue)}.wdc-red:not(.wdc-today){background:var(--red-bg);color:var(--red)}.wdc-red:not(.wdc-today) .wdc-day{color:var(--red)}
+.sec-divider{display:flex;align-items:center;gap:10px;margin:4px 0 10px}.sdiv-bar{flex:1;height:1px;background:var(--line)}.sdiv-label{font-size:12px;font-weight:500;color:var(--muted)}textarea.field{display:block;width:100%;border:1px solid var(--line);border-radius:12px;background:var(--bg);resize:vertical;min-height:100px;padding:13px 14px;font-size:15px;line-height:1.9}table.gt,.sch-table{width:100%;border-collapse:collapse;table-layout:fixed}table.gt th,.sch-table th{background:var(--soft);padding:10px 12px;color:var(--muted);font-size:12px;font-weight:500;text-align:left;border-bottom:1px solid var(--line)}table.gt td{padding:10px 12px;border-bottom:1px solid var(--line)}table.gt tr:last-child td{border-bottom:0}table.gt td input,.sch-table td input{width:100%;border:0;border-radius:4px;background:transparent;font-size:15px;min-height:32px}table.gt td input[type=number]{text-align:center;font-variant-numeric:tabular-nums;color:var(--green);font-weight:600}.add-btn{display:inline-flex;align-items:center;min-height:44px;padding:8px 3px;border:0;background:none;color:var(--green);font-size:13px;font-weight:600}
+.day-bar{margin-bottom:18px}.day-btn{border:1px solid var(--line);border-radius:13px;background:var(--surface);padding:10px 0;color:var(--muted);text-align:center}.db-day{display:block;font-size:12px;font-weight:500}.db-date{display:block;font-size:16px;font-weight:600;margin-top:3px}.day-btn.is-sat:not(.active){color:var(--blue);background:var(--blue-bg)}.day-btn.is-red:not(.active){color:var(--red);background:var(--red-bg)}.day-btn.is-today:not(.active){border:2px solid var(--green)}.day-btn.active{background:var(--green);border-color:var(--green);color:#fff}.daily-day-header{display:flex;align-items:center;gap:13px;padding:20px;margin-bottom:18px;background:var(--green-soft);border:1px solid var(--line);border-radius:var(--r)}.ddh-icon{font-size:26px}.ddh-day{font-size:20px;font-weight:700;color:var(--green);letter-spacing:-.6px}.ddh-date{font-size:13px;color:var(--muted);margin-top:2px}.sch-wrap{padding:0 16px 18px}.sch-table th:first-child{width:64px!important}.sch-table td{padding:5px 8px;border-bottom:1px solid var(--line);vertical-align:middle}.sch-table td.tm{width:64px;font-size:12px;font-weight:500;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}.sch-table tr:nth-child(even){background:var(--bg)}.backup-toggle{display:block;width:calc(100% - 40px);margin:0 20px 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--green);font-size:12px;min-height:40px}.work-collapse-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;min-height:44px;margin:8px 0;border:1px dashed var(--line);border-radius:9px;background:var(--green-soft);font-size:12px;color:var(--green)}.arrow{font-size:10px}.work-hours-block{overflow:hidden;transition:max-height .25s ease}.item-row{display:flex;align-items:center;gap:10px;min-height:48px;padding:8px 0;border-bottom:1px solid var(--line)}.item-row:last-child{border:0}.chk{width:20px;height:20px;flex-shrink:0;accent-color:var(--green);cursor:pointer}.item-inp{flex:1;width:100%;border:0;background:transparent;font-size:15px;min-height:32px}.item-inp.done{text-decoration:line-through;color:var(--muted)}.study-tag{padding:5px 9px;border-radius:8px;background:var(--green-soft);color:var(--green);font-size:12px;font-weight:600;cursor:pointer;max-width:100px;overflow-wrap:anywhere}.save-row{display:flex;align-items:center;gap:14px;margin-top:22px}.save-btn{padding:13px 30px;min-height:48px;border:0;border-radius:13px;background:var(--green);color:#fff;font-size:15px;font-weight:600;box-shadow:0 4px 12px #38624f18}.saved-msg{font-size:13px;color:var(--green);opacity:0;transition:opacity .2s}button:active{transform:translateY(1px)}
+@media(hover:hover){.week-nav-btn:hover,.backup-toggle:hover{background:var(--green-soft)}.save-btn:hover{filter:brightness(.93)}}
+@media(min-width:700px){body{padding-top:20px}.app-header{padding-top:26px}}
+@media(max-width:380px){body{padding-inline:6px}.content{padding-inline:4px}.app-header{padding-inline:6px}.app-title{font-size:22px}.week-badge{font-size:10px;padding:5px 7px}.card-header{padding-inline:15px}.card-body{padding-inline:14px}.week-label-big{font-size:13px}table.gt th,table.gt td{padding-inline:7px}}
+@media(pointer:coarse){input,textarea.field,table.gt td input,.sch-table td input,.item-inp{font-size:16px}}
+@media(prefers-color-scheme:dark){:root{color-scheme:dark;--bg:#1c2420;--surface:#252f29;--soft:#2e3a32;--line:#435247;--ink:#e4e9e0;--muted:#b0bdaf;--green:#afd2b6;--green-soft:#33493b;--blue:#b0cbe0;--blue-bg:#2d3c47;--red:#edb6aa;--red-bg:#47332f;--shadow:none}.save-btn,.day-btn.active,.wdc-today{background:#afd2b6;color:#203a29}.wdc-today .wdc-day{color:#203a29}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;scroll-behavior:auto!important}}
 </style>
 </head>
 <body>
@@ -333,15 +34,15 @@ table.gt td input[type=number]{width:44px;text-align:center;font-weight:700;colo
   <div class="header-top">
     <div>
       <div class="app-title-sub">MY DAILY PLANNER</div>
-      <div class="app-title">📋 데일리 플래너</div>
+      <div class="app-title">데일리 플래너</div>
     </div>
     <div class="week-badge" id="week-badge">주간 선택</div>
   </div>
 </div>
 
 <div class="tab-bar">
-  <div class="tab active" onclick="switchTab('weekly')">주간 계획</div>
-  <div class="tab" onclick="switchTab('daily')">일일 플래너</div>
+  <button type="button" class="tab active" onclick="switchTab('weekly')">주간 계획</button>
+  <button type="button" class="tab" onclick="switchTab('daily')">일일 플래너</button>
 </div>
 
 <div class="content">
@@ -356,9 +57,9 @@ table.gt td input[type=number]{width:44px;text-align:center;font-weight:700;colo
       </div>
       <div class="card-body">
         <div class="week-nav">
-          <button class="week-nav-btn" onclick="changeWeek(-1)">‹</button>
+          <button class="week-nav-btn" aria-label="이전 주" onclick="changeWeek(-1)">‹</button>
           <div class="week-label-big" id="week-label-big">—</div>
-          <button class="week-nav-btn" onclick="changeWeek(1)">›</button>
+          <button class="week-nav-btn" aria-label="다음 주" onclick="changeWeek(1)">›</button>
         </div>
         <div class="week-dates-row" id="week-dates-row"></div>
       </div>
